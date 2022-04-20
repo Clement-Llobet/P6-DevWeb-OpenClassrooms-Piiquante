@@ -28,10 +28,10 @@ exports.postLogin = (req, res, next) => {
                         return res.status(401).json({ error: "Mot de passe incorrect !"});
                     }
                     res.status(200).json({
-                        userId: user.userId,
+                        userId: user._id,
                         token: jwt.sign(
                             { userId: user.userId },
-                            process.env.TOKEN_SECRET, // Générateur aléatoire
+                            process.env.TOKEN_SECRET,
                             { expiresIn: '24h' }
                         )
                     });

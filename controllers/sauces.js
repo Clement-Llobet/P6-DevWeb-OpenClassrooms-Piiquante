@@ -14,7 +14,7 @@ exports.postSauce = (req, res, next) => {
 };
 
 exports.putSauce = (req, res, next) => {
-    Sauces.updateOne({ userId: req.params.id }, { ...req.body, userId: req.params.id })
+    Sauces.updateOne({ userId: req.params.id }, { sauceObject, userId: req.params.id })
         .then(() => res.status(200).json({ message: 'Sauce modifiée !'}))
         .catch(error => res.status(400).json({ error }));
 };
@@ -37,7 +37,7 @@ exports.deleteSauce = (req, res, next) => {
 
 // FONCTION A VERIFIER
 exports.postSpecificSauceLike = (req, res, next) => {
-    Sauces.findOne({ userId: req.params.id })
+    Sauces.findOne({ _id: req.params.id })
     .save()
         .then(() => res.status(200).json({ message: 'Like enregistré !'}))
         .catch(error => res.status(400).json({ error }));
@@ -50,7 +50,7 @@ exports.getSauces = (req, res, next) => {
 };
 
 exports.getSpecificSauce = (req, res, next) => {
-    Sauces.findOne({ userId: req.params.id })
+    Sauces.findOne({ _id: req.params.id })
         .then(sauce => res.status(200).json(sauce))
         .catch(error => res.status(400).json({ error }));
 };

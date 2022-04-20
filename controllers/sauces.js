@@ -4,7 +4,6 @@ exports.postSauce = (req, res, next) => {
     const sauceObject = JSON.parse(req.body.sauce);
     delete sauceObject._id;
     const sauce = new Sauces({
-        // ...req.body // Pas de vérification des champs
         ...sauceObject,
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     })
@@ -26,7 +25,7 @@ exports.deleteSauce = (req, res, next) => {
             res.status(404).json({ error: new Error("La sauce recherché n'existe pas !")});
         }
         if (sauce.userId !== req.auth.userId) {
-            res.status(400).json({ error: new Error("Requêt non autorisée !")});
+            res.status(400).json({ error: new Error("Requête non autorisée !")});
         }
         Sauces.deleteOne({ _id: req.params.id })
         .then(() => res.status(200).json({ message: 'Sauce supprimée !'}))
@@ -37,10 +36,29 @@ exports.deleteSauce = (req, res, next) => {
 
 // FONCTION A VERIFIER
 exports.postSpecificSauceLike = (req, res, next) => {
-    Sauces.findOne({ _id: req.params.id })
-    .save()
-        .then(() => res.status(200).json({ message: 'Like enregistré !'}))
-        .catch(error => res.status(400).json({ error }));
+    console.log(req);
+
+        Sauces.findOneAndUpdate(
+            { _id: req.params.id },
+            { 
+                likes: 1,
+                usersLiked: [userId]
+            },
+            { useFindAndModify: false },
+        )
+            .then(() => res.status(200).json({ message: "like ajouté"}))
+            .catch(error => res.status(400).json({ error }))
+    
+
+    
+
+    // Si like = 1, l'utilisateur aime
+    // Si like = 0, l'utilisateur retire son like
+    // L'ID de l'utilisateur doit être ajouté ou retiré du tableau approprié.
+    // Cela permet de garder une trace de leurs préférences et les empêche de liker 
+    // ou de ne pas disliker la même sauce plusieurs fois : un utilisateur ne peut 
+    // avoir qu'une seule valeur pour chaque sauce.
+    // Le nombre total de « Like » et de « Dislike » est mis à jour à chaque nouvelle notation.
 };
 
 exports.getSauces = (req, res, next) => {

@@ -39,7 +39,7 @@ exports.deleteSauce = (req, res, next) => {
             fs.unlink(`images/${filename}`, () => {
                 Sauces.deleteOne({ _id: req.params.id })
                     .then(() => res.status(200).json({ message: 'Sauce supprimée !'}))
-                    .catch(error => res.status(400).json({ error })); 
+                    .catch(error => res.status(400).json({ error }));
             });
         })
         .catch(error => res.status(500).json({ error }))
@@ -47,10 +47,9 @@ exports.deleteSauce = (req, res, next) => {
 
 // FONCTION A VERIFIER
 exports.postSpecificSauceLike = (req, res, next) => {
-    console.log(req.body);
-    // return res.status(200).json({ message: "like ajouté"});
+    const likeOrDislike = req.body.like || req.body.dislike;
 
-    switch (req.body.like) {
+    switch (likeOrDislike) {
         case 1:
             Sauces.findOneAndUpdate(
                 { _id: req.params.id },
@@ -61,11 +60,22 @@ exports.postSpecificSauceLike = (req, res, next) => {
                 .catch(error => res.status(400).json({ error }))
         break;
         case 0 :
-            Sauces.findOne({ _id: req.params.id })
-                // .then((sauce) => {
-    
-                // })
+            Sauces.findOneAndUpdate(
+                { _id: req.params._id },
+                (sauce) => {
 
+                    if (JSON.parse(sauce.usersLiked).includes(_id)) {
+                        $inc: { likes: -1 }
+                        $pull: { usersLiked: req.body.userId }
+                    }
+                    else if (JSON.parse(sauce.usersDisliked).includes(_id)) {
+                        $inc: { dislikes: -1 }
+                        $pull: { usersDisliked: req.body.userId }
+                    }
+                }
+            )
+                .then(() => res.status(200).json({ message: "Like modifié"}))
+                .catch(error => res.status(400).json({ error }))
             // Check si UserId est dans tableau, si oui on supprime le userId
             // FindOne, vérifier la valeur, puis update le tableau
         break;

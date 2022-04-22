@@ -1,4 +1,5 @@
 const Sauces = require('../models/sauces');
+const fs = require('fs');
 
 exports.postSauce = (req, res, next) => {
     const sauceObject = JSON.parse(req.body.sauce);
@@ -13,25 +14,35 @@ exports.postSauce = (req, res, next) => {
 };
 
 exports.putSauce = (req, res, next) => {
-    Sauces.updateOne({ userId: req.params.id }, { sauceObject, userId: req.params.id })
+    const sauceObject = req.file ?
+        {
+            ...JSON.parse(req.body.sauce),
+            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        } : { ...req.body };
+    Sauces.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
         .then(() => res.status(200).json({ message: 'Sauce modifiée !'}))
         .catch(error => res.status(400).json({ error }));
 };
 
 exports.deleteSauce = (req, res, next) => {
     Sauces.findOne({ _id: req.params.id })
-    .then((sauce) => {
-        if (!sauce) {
-            res.status(404).json({ error: new Error("La sauce recherché n'existe pas !")});
-        }
-        if (sauce.userId !== req.auth.userId) {
-            res.status(400).json({ error: new Error("Requête non autorisée !")});
-        }
-        Sauces.deleteOne({ _id: req.params.id })
-        .then(() => res.status(200).json({ message: 'Sauce supprimée !'}))
-        .catch(error => res.status(400).json({ error }));
-    })
-    .catch(error => res.status(400).json({ error }))
+        .then((sauce) => {
+            if (!sauce) {
+                return res.status(404).json({ error: new Error("La sauce recherché n'a pas été trouvée.")});
+            }
+            
+            // if (sauce.userId !== req.auth.userId) {
+            //     return res.status(401).json({ error: new Error("Requête non autorisée !")});
+            // }
+
+            const filename = sauce.imageUrl.split('/images/')[1];
+            fs.unlink(`images/${filename}`, () => {
+                Sauces.deleteOne({ _id: req.params.id })
+                    .then(() => res.status(200).json({ message: 'Sauce supprimée !'}))
+                    .catch(error => res.status(400).json({ error })); 
+            });
+        })
+        .catch(error => res.status(500).json({ error }))
 };
 
 // FONCTION A VERIFIER
@@ -50,48 +61,24 @@ exports.postSpecificSauceLike = (req, res, next) => {
                 .catch(error => res.status(400).json({ error }))
         break;
         case 0 :
-            Sauces.findOneAndUpdate(
-                { _id: req.paramas.id },
-                { 
-                    $inc: { likes: -1 }, 
-                    $pull: {
-                        userId: UsersLiked.find(() => {
-                            if (req.body.userId) {
-                                return req.body.userId
-                            }
-                            else {
-                                return error
-                            }
-                        })
-                    }
-                }
-            )
+            Sauces.findOne({ _id: req.params.id })
+                // .then((sauce) => {
+    
+                // })
+
             // Check si UserId est dans tableau, si oui on supprime le userId
             // FindOne, vérifier la valeur, puis update le tableau
-
-                // .then(() => res.status(200).json({ message: "Like supprimé"}))
-                // .catch(error => res.status(400).json({ error }))
         break;
         case -1:
             Sauces.findOneAndUpdate(
                 { _id: req.params.id },
-                { $inc: { likes: -1 }, $push: { usersDisliked: req.body.userId } },
+                { $inc: { dislikes: +1 }, $push: { usersDisliked: req.body.userId } },
                 { useFindAndModify: false }
             )
                 .then(() => res.status(200).json({ message: "Dislike ajouté"}))
                 .catch(error => res.status(400).json({ error }))
         break;
     }
-
-    // Sauces.findOneAndUpdate(
-    //     { _id: req.params.id },
-    //     { 
-    //         likes: 1
-    //     },
-    //     { useFindAndModify: false },
-    // )
-    //     .then(() => res.status(200).json({ message: "like ajouté"}))
-    //     .catch(error => res.status(400).json({ error }))
     
 
     // Si like = 1, l'utilisateur aime

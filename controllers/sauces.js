@@ -31,9 +31,9 @@ exports.deleteSauce = (req, res, next) => {
                 return res.status(404).json({ error: new Error("La sauce recherché n'a pas été trouvée.")});
             }
             
-            // if (sauce.userId !== req.auth.userId) {
-            //     return res.status(401).json({ error: new Error("Requête non autorisée !")});
-            // }
+            if (sauce.userId !== req.auth.userId) {
+                return res.status(401).json({ error: new Error("Requête non autorisée !")});
+            }
 
             const filename = sauce.imageUrl.split('/images/')[1];
             fs.unlink(`images/${filename}`, () => {
@@ -47,43 +47,64 @@ exports.deleteSauce = (req, res, next) => {
 
 // FONCTION A VERIFIER
 exports.postSpecificSauceLike = (req, res, next) => {
-    const likeOrDislike = req.body.like || req.body.dislike;
+    const likeOrDislike = req.body.like
+    console.log(likeOrDislike);
 
     switch (likeOrDislike) {
         case 1:
             Sauces.findOneAndUpdate(
                 { _id: req.params.id },
                 { $inc: { likes: +1 }, $push: { usersLiked: req.body.userId } },
-                { useFindAndModify: false }
+                // { useFindAndModify: false }
             )
                 .then(() => res.status(200).json({ message: "Like ajouté"}))
                 .catch(error => res.status(400).json({ error }))
         break;
         case 0 :
-            Sauces.findOneAndUpdate(
-                { _id: req.params._id },
-                (sauce) => {
+            
+            console.log("findOneAndUpdate");
 
-                    if (JSON.parse(sauce.usersLiked).includes(_id)) {
-                        $inc: { likes: -1 }
-                        $pull: { usersLiked: req.body.userId }
-                    }
-                    else if (JSON.parse(sauce.usersDisliked).includes(_id)) {
-                        $inc: { dislikes: -1 }
-                        $pull: { usersDisliked: req.body.userId }
-                    }
-                }
+            Sauces.findOne(
+                { _id: req.params.id }
             )
-                .then(() => res.status(200).json({ message: "Like modifié"}))
-                .catch(error => res.status(400).json({ error }))
-            // Check si UserId est dans tableau, si oui on supprime le userId
-            // FindOne, vérifier la valeur, puis update le tableau
+            .then(
+                (sauce) => {
+                    console.log(sauce, req.auth.userId);
+
+                    const findUserDisliked = sauce.usersDisliked.find(user => user === req.body.userId);
+                    const findUserLiked = sauce.usersLiked.find(user => user === req.body.userId);
+
+                    console.log(findUserDisliked, findUserLiked);
+
+                    if (findUserDisliked) {
+                        Sauces.updateOne( { _id: req.params.id },
+                             {
+                                 $inc: { dislikes: -1 },
+                                 $pull: { usersDisliked: req.body.userId }
+                            }
+                        )
+                            .then(() => res.status(200).json({ message: "Like modifié"}))
+                            .catch(error => res.status(400).json({ error }))
+                    }
+                    else if (findUserLiked) {
+                        Sauces.updateOne(
+                            { _id: req.params.id },
+                            {
+                                $inc: { likes: -1 },
+                                $pull: { usersLiked: req.body.userId }
+                            }
+                        )
+                            .then(() => res.status(200).json({ message: "Like modifié"}))
+                            .catch(error => res.status(400).json({ error }))
+                    }
+                } 
+            )
         break;
         case -1:
             Sauces.findOneAndUpdate(
                 { _id: req.params.id },
                 { $inc: { dislikes: +1 }, $push: { usersDisliked: req.body.userId } },
-                { useFindAndModify: false }
+                // { useFindAndModify: false }
             )
                 .then(() => res.status(200).json({ message: "Dislike ajouté"}))
                 .catch(error => res.status(400).json({ error }))

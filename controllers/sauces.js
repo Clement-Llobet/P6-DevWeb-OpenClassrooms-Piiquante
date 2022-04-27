@@ -48,33 +48,23 @@ exports.deleteSauce = (req, res, next) => {
 // FONCTION A VERIFIER
 exports.postSpecificSauceLike = (req, res, next) => {
     const likeOrDislike = req.body.like
-    console.log(likeOrDislike);
 
     switch (likeOrDislike) {
         case 1:
             Sauces.findOneAndUpdate(
                 { _id: req.params.id },
                 { $inc: { likes: +1 }, $push: { usersLiked: req.body.userId } },
-                // { useFindAndModify: false }
             )
                 .then(() => res.status(200).json({ message: "Like ajouté"}))
                 .catch(error => res.status(400).json({ error }))
         break;
         case 0 :
-            
-            console.log("findOneAndUpdate");
-
             Sauces.findOne(
                 { _id: req.params.id }
             )
-            .then(
-                (sauce) => {
-                    console.log(sauce, req.auth.userId);
-
+            .then((sauce) => {
                     const findUserDisliked = sauce.usersDisliked.find(user => user === req.body.userId);
                     const findUserLiked = sauce.usersLiked.find(user => user === req.body.userId);
-
-                    console.log(findUserDisliked, findUserLiked);
 
                     if (findUserDisliked) {
                         Sauces.updateOne( { _id: req.params.id },
@@ -104,21 +94,11 @@ exports.postSpecificSauceLike = (req, res, next) => {
             Sauces.findOneAndUpdate(
                 { _id: req.params.id },
                 { $inc: { dislikes: +1 }, $push: { usersDisliked: req.body.userId } },
-                // { useFindAndModify: false }
             )
                 .then(() => res.status(200).json({ message: "Dislike ajouté"}))
                 .catch(error => res.status(400).json({ error }))
         break;
     }
-    
-
-    // Si like = 1, l'utilisateur aime
-    // Si like = 0, l'utilisateur retire son like
-    // L'ID de l'utilisateur doit être ajouté ou retiré du tableau approprié.
-    // Cela permet de garder une trace de leurs préférences et les empêche de liker 
-    // ou de ne pas disliker la même sauce plusieurs fois : un utilisateur ne peut 
-    // avoir qu'une seule valeur pour chaque sauce.
-    // Le nombre total de « Like » et de « Dislike » est mis à jour à chaque nouvelle notation.
 };
 
 exports.getSauces = (req, res, next) => {

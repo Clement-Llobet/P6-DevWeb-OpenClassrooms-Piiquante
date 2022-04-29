@@ -68,7 +68,7 @@ exports.postSpecificSauceLike = (req, res, next) => {
 
                     if (findUserDisliked) {
                         Sauces.updateOne( { _id: req.params.id },
-                             {
+                            {
                                  $inc: { dislikes: -1 },
                                  $pull: { usersDisliked: req.body.userId }
                             }

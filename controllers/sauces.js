@@ -53,7 +53,7 @@ exports.postSpecificSauceLike = (req, res, next) => {
                 { 
                     $inc: { likes: +1 },
                     $push: { usersLiked: req.body.userId }
-                },
+                }
             )
                 .then(() => res.status(200).json({ message: "Like ajouté"}))
                 .catch(error => res.status(400).json({ error }))
@@ -97,7 +97,7 @@ exports.postSpecificSauceLike = (req, res, next) => {
                 {
                     $inc: { dislikes: +1 },
                     $push: { usersDisliked: req.body.userId } 
-                },
+                }
             )
                 .then(() => res.status(200).json({ message: "Dislike ajouté"}))
                 .catch(error => res.status(400).json({ error }))

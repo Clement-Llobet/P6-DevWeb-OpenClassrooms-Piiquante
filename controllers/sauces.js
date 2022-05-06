@@ -46,13 +46,14 @@ exports.deleteSauce = (req, res, next) => {
 };
 
 exports.postSpecificSauceLike = (req, res, next) => {
-    const likeOrDislike = req.body.like
-
-    switch (likeOrDislike) {
+    switch (req.body.like) {
         case 1:
             Sauces.findOneAndUpdate(
                 { _id: req.params.id },
-                { $inc: { likes: +1 }, $push: { usersLiked: req.body.userId } },
+                { 
+                    $inc: { likes: +1 },
+                    $push: { usersLiked: req.body.userId }
+                },
             )
                 .then(() => res.status(200).json({ message: "Like ajouté"}))
                 .catch(error => res.status(400).json({ error }))
@@ -66,7 +67,8 @@ exports.postSpecificSauceLike = (req, res, next) => {
                     const findUserLiked = sauce.usersLiked.find(user => user === req.body.userId);
 
                     if (findUserDisliked) {
-                        Sauces.updateOne( { _id: req.params.id },
+                        Sauces.updateOne( 
+                            { _id: req.params.id },
                             {
                                  $inc: { dislikes: -1 },
                                  $pull: { usersDisliked: req.body.userId }
@@ -92,7 +94,10 @@ exports.postSpecificSauceLike = (req, res, next) => {
         case -1:
             Sauces.findOneAndUpdate(
                 { _id: req.params.id },
-                { $inc: { dislikes: +1 }, $push: { usersDisliked: req.body.userId } },
+                {
+                    $inc: { dislikes: +1 },
+                    $push: { usersDisliked: req.body.userId } 
+                },
             )
                 .then(() => res.status(200).json({ message: "Dislike ajouté"}))
                 .catch(error => res.status(400).json({ error }))

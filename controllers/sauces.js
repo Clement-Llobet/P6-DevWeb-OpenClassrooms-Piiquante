@@ -32,7 +32,7 @@ exports.deleteSauce = (req, res, next) => {
             }
             
             if (sauce.userId !== req.auth.userId) {
-                return res.status(401).json({ error: new Error("Requête non autorisée !")});
+                return res.status(403).json({ error: new Error("403: unauthorized request.")});
             }
 
             const filename = sauce.imageUrl.split('/images/')[1];

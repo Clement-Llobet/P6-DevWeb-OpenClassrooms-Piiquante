@@ -45,7 +45,6 @@ exports.deleteSauce = (req, res, next) => {
         .catch(error => res.status(500).json({ error }))
 };
 
-// FONCTION A VERIFIER
 exports.postSpecificSauceLike = (req, res, next) => {
     const likeOrDislike = req.body.like
 

@@ -1,0 +1,1 @@
+<meta http-equiv="refresh" content="0; url=https://clemteboll.github.io/P6_Llobet_Clement_OpenClassrooms/frontend/src/index.html" />
